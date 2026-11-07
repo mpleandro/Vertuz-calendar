@@ -1,0 +1,50 @@
+/* Template IGNIS — preto, laranja, Manrope + DM Mono, cantos retos */
+:root{
+  --bg:#080808; --bg-grad:#080808;
+  --surface:#0d0d0d; --surface-strong:#141414;
+  --line:#ffffff20; --line-strong:#ffffff33;
+  --text:#f7f5ef; --muted:#aaa8a2; --faint:#7f7e79;
+  --primary:#ff6b1a; --on-primary:#080808; --accent:#ff6b1a;
+  --radius:0px; --radius-btn:0px; --radius-input:0px; --radius-chip:0px;
+  --font:Manrope,Arial,sans-serif; --font-label:'DM Mono',monospace;
+  --title-size:clamp(34px,11vw,64px); --title-weight:800; --title-ls:-.055em; --title-case:uppercase; --title-lh:.95;
+  --label-ls:.12em; --label-size:10.5px;
+  --hero-overlay:linear-gradient(0deg,#080808 2%,rgba(8,8,8,.75) 40%,rgba(8,8,8,.15) 100%);
+}
+::selection{background:#ff6b1a;color:#080808}
+.bg{background:repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),#ffffff0a calc(25% - 1px),#ffffff0a 25%)}
+.strip{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 10px;padding:10px var(--gutter);background:#ff6b1a;color:#080808;font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+.strip i{width:4px;height:4px;background:#080808;transform:rotate(45deg)}
+.hero{border-bottom:1px solid var(--line);min-height:360px}
+.hero__img{background-position:center 15%;filter:grayscale(.15) contrast(1.05)}
+.logo-ignis{display:block;width:132px;height:auto}
+.tag{border-radius:0;background:transparent;box-shadow:inset 0 0 0 1px #ff6b1a;color:#ff6b1a;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.datechip{background:#080808;box-shadow:inset 0 0 0 1px var(--line-strong)}
+.datechip__month{font-family:'DM Mono',monospace;color:#080808}
+.datechip__day{font-weight:700;letter-spacing:-.04em}
+.hero__weekday{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.hero__time{font-weight:700;letter-spacing:-.03em;font-size:22px}
+.tz{border-radius:0;font-family:'DM Mono',monospace}
+.title{padding-top:28px}
+.eyebrow{display:inline-block;padding:7px 10px;border:1px solid #ff6b1a;color:#ff6b1a}
+.subtitle{font-size:16px;color:var(--muted)}
+.countdown__tile{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.countdown__tile b{font-size:26px;font-weight:700;letter-spacing:-.04em}
+.countdown__tile span{font-family:'DM Mono',monospace}
+.card{box-shadow:inset 0 0 0 1px var(--line)}
+.card__label{color:#ff6b1a}
+.card--cta{box-shadow:inset 0 0 0 1px #ff6b1a66;background:linear-gradient(180deg,#ff6b1a14,transparent 60%),#0b0b0b}
+.cta__title{font-size:20px;font-weight:700;letter-spacing:-.03em}
+.btn--primary{justify-content:space-between;padding:16px 18px;font-size:13px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.btn--primary .btn__icon{order:2}
+.btn--primary:hover{filter:none;background:#ff7d36}
+.option{font-family:'DM Mono',monospace;font-size:12px;font-weight:400}
+.row__icon{border-radius:0;background:transparent;color:#ff6b1a}
+.row__label{font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;font-size:10px}
+.cta__switch{color:#ff6b1a}
+.footer__mark--ignis{width:120px;height:auto;opacity:.85}
+.footer__text{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.sticky{background:#080808;border-top:1px solid #ff6b1a55}
+.toast{border-radius:0;background:#0d0d0d;box-shadow:inset 0 0 0 1px #ff6b1a,0 16px 40px rgba(0,0,0,.6)}
+.toast__icon{border-radius:0}
+@media(min-width:720px){.page{padding-top:0}.hero{border:1px solid var(--line);border-top:0}}

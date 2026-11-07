@@ -1,0 +1,37 @@
+/* Template Mentoria Mil Milionários — marrom #3a1914, laranja #ffaa58, off-white #fffcf5, terracota #a35139.
+   Gotham é a fonte da marca; Montserrat é usada como substituta livre. */
+:root{
+  --bg:#2a120e; --bg-grad:linear-gradient(180deg,#3a1914 0%,#2a120e 45%,#1d0c09 100%);
+  --surface:rgba(255,252,245,.035); --surface-strong:rgba(255,252,245,.07);
+  --line:rgba(255,252,245,.12); --line-strong:rgba(255,252,245,.2);
+  --text:#fffcf5; --muted:rgba(255,252,245,.76); --faint:rgba(255,252,245,.52);
+  --primary:#ffaa58; --on-primary:#3a1914; --accent:#ffaa58;
+  --radius:16px; --radius-btn:12px; --radius-input:12px; --radius-chip:12px;
+  --font:Montserrat,"Gotham",system-ui,sans-serif;
+  --title-size:clamp(26px,7.6vw,38px); --title-weight:700; --title-ls:-.01em; --title-case:uppercase; --title-lh:1.08;
+  --label-ls:.22em; --label-size:10.5px;
+  --hero-overlay:linear-gradient(0deg,#2a120e 0%,rgba(42,18,14,.35) 55%,rgba(42,18,14,0) 100%);
+}
+.bg::after{content:"";position:absolute;inset:0;opacity:.09;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hero{background:radial-gradient(120% 90% at 0% 0%,#e09a5c 0%,#a35139 38%,#3a1914 80%)}
+@media(min-width:720px){.hero{border-radius:20px}}
+.logo-mmm{display:block;width:150px;height:32px;background:#fffcf5;-webkit-mask:url('/templates/milmilionarios/logo.png') left center/contain no-repeat;mask:url('/templates/milmilionarios/logo.png') left center/contain no-repeat}
+.logo-mmm-symbol{display:block;width:56px;height:31px;background:var(--accent);-webkit-mask:url('/templates/milmilionarios/symbol.png') center/contain no-repeat;mask:url('/templates/milmilionarios/symbol.png') center/contain no-repeat}
+.tag{border-radius:100px;background:rgba(58,25,20,.45);box-shadow:inset 0 0 0 1px rgba(255,252,245,.25);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.tag svg{display:none}
+.datechip{background:#fffcf5;color:#3a1914;box-shadow:none}
+.datechip__month{background:#a35139;color:#fffcf5;letter-spacing:.16em}
+.datechip__day{font-weight:700}
+.hero__weekday{font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,252,245,.8)}
+.hero__time{font-weight:600}
+.tz{border-radius:100px}
+.eyebrow{display:block;font-weight:600}
+.subtitle{font-weight:400}
+.countdown__tile b{font-weight:700}
+.card__label{color:var(--accent);font-weight:600}
+.card--cta{background:linear-gradient(160deg,rgba(255,170,88,.14),rgba(163,81,57,.06) 60%,rgba(255,252,245,.02))}
+.cta__title{font-weight:700;text-transform:uppercase;letter-spacing:.01em;font-size:16px}
+.btn--primary{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px;box-shadow:0 12px 30px rgba(255,170,88,.22)}
+.row__icon{border-radius:12px;color:var(--accent)}
+.footer__text{letter-spacing:.18em;text-transform:uppercase;font-size:10.5px}
+.footer__text b{font-weight:700;color:var(--text)}

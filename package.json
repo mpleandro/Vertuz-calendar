@@ -1,0 +1,17 @@
+{
+  "name": "vertuz-agenda",
+  "version": "1.0.0",
+  "description": "Vertuz Agenda — páginas de evento com botão 'Salvar na agenda' (.ics, Google, Outlook, Yahoo) e painel admin.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

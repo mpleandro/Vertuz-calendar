@@ -1,0 +1,28 @@
+/* Template Vértuz — azul profundo, vidro, céu estrelado */
+:root{
+  --bg:#00050d; --bg-grad:linear-gradient(0deg,#00050d 0%,#000f26 100%);
+  --surface:rgba(255,255,255,.02); --surface-strong:rgba(255,255,255,.05);
+  --line:rgba(255,255,255,.1); --line-strong:rgba(255,255,255,.14);
+  --text:#fff; --muted:rgba(255,255,255,.72); --faint:rgba(255,255,255,.5);
+  --primary:#0063f2; --on-primary:#fff; --accent:#80b4ff;
+  --radius:16px; --radius-btn:100px; --radius-input:100px; --radius-chip:14px;
+  --font:"Satoshi",system-ui,-apple-system,sans-serif;
+  --title-weight:500;
+  --hero-overlay:linear-gradient(0deg,#00050d 0%,rgba(0,5,13,.55) 45%,rgba(0,5,13,.35) 100%);
+}
+body{letter-spacing:-.01em}
+.bg{background:url('/brand/stars.jpg') center top/cover no-repeat;opacity:.55;mix-blend-mode:screen}
+.hero{background:linear-gradient(0deg,#002f7a 0%,#001433 48%,#00050d 100%);border-radius:0 0 24px 24px}
+@media(min-width:720px){.hero{border-radius:24px;min-height:340px}}
+.logo-vertuz{display:inline-flex;align-items:center;gap:8px;font-weight:500;font-size:14px}
+.logo-vertuz__dot{width:22px;height:22px;border-radius:50%;background:url('/brand/mascot.png') center/cover no-repeat}
+.tag{background:rgba(0,99,242,.12);box-shadow:inset 0 0 0 1px rgba(0,99,242,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.tag span{background:linear-gradient(95deg,#80b4ff -20%,#fff 120%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.datechip{backdrop-filter:saturate(140%) blur(18px);-webkit-backdrop-filter:saturate(140%) blur(18px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),inset 0 1px 1px rgba(255,255,255,.3)}
+.countdown__tile{background:linear-gradient(0deg,rgba(255,255,255,.02) 50%,rgba(0,99,242,.12) 103%)}
+.card--cta{background:linear-gradient(-0.3deg,rgba(255,255,255,.02) 32%,rgba(0,99,242,.14) 102%)}
+.card--cta::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:.5px;background:linear-gradient(-123deg,#80b4ff 4%,rgba(128,180,255,.1) 86%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.btn--primary{font-weight:500;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),inset 0 1px 1px rgba(255,255,255,.35),0 10px 30px rgba(0,99,242,.4)}
+.row__icon{background:rgba(0,99,242,.1);box-shadow:inset 0 0 0 1px rgba(0,99,242,.25)}
+.footer__mark{width:40px;height:40px;filter:drop-shadow(0 6px 16px rgba(0,99,242,.45))}
+.toast__icon{background:url('/brand/mascot.png') center/cover no-repeat;color:transparent}
