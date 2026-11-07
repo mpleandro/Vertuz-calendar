@@ -7,7 +7,7 @@ import { config } from './config.js';
 export function calendarLinks(ev, { baseUrl, token = '' }) {
   const { start, end } = eventTimes(ev);
   const pageUrl = `${baseUrl}/e/${ev.slug}`;
-  const desc = [ev.description, ev.details, ev.url ? `Link: ${ev.url}` : '', `Página: ${pageUrl}`].filter(Boolean).join('\n\n');
+  const desc = [ev.description, ev.details, ev.url ? `Link: ${ev.url}` : 'Link do evento: ainda não divulgado. Acompanhe pela página do evento.', `Página: ${pageUrl}`].filter(Boolean).join('\n\n');
   const s = toIcsUtc(start), e = toIcsUtc(end);
   const iso = d => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
 

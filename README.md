@@ -34,7 +34,6 @@ O `.ics` usa um `UID` fixo por evento: se você editar a data e a pessoa salvar 
 | id | Nome | Fonte usada | Observação |
 |---|---|---|---|
 | `vertuz` | Vértuz | Satoshi | Identidade original |
-| `ignis` | IGNIS | Manrope + DM Mono | Do projeto Vulcan |
 | `plenitude` | Jornada Plenitude | Libre Caslon Text + Figtree | Substitutas de Halidary e Sintece, que são fontes próprias do site |
 | `milmilionarios` | Mentoria Mil Milionários | Montserrat | Substituta de Gotham; símbolo e logo extraídos do manual |
 
@@ -42,7 +41,11 @@ Para adicionar um template: crie uma entrada em `src/templates.js` e uma pasta `
 
 ## E-mail obrigatório
 
-Com o campo ligado, a página não envia ao navegador o link do evento nem os links de calendário. Depois que o visitante informa o e-mail, o servidor devolve um token assinado que libera o link e o `.ics`. Sem token válido, `/e/<slug>/evento.ics` responde 403.
+Com o campo ligado, a página não envia ao navegador o local, o link do evento nem os links de calendário. Depois que o visitante informa o e-mail, o servidor devolve um token assinado que libera o link e o `.ics`. Sem token válido, `/e/<slug>/evento.ics` responde 403.
+
+## Link pendente
+
+O link do evento pode ser preenchido depois. Enquanto estiver vazio, a página mostra o aviso "Evento em preparação" e marca o link como pendente, e o calendário do visitante registra que o link ainda não foi divulgado. No admin, o evento aparece com o selo "Link pendente".
 
 ## Rotas
 

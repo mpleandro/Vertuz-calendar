@@ -25,7 +25,6 @@
 .hero__weekday{font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,252,245,.8)}
 .hero__time{font-weight:600}
 .tz{border-radius:100px}
-.eyebrow{display:block;font-weight:600}
 .subtitle{font-weight:400}
 .countdown__tile b{font-weight:700}
 .card__label{color:var(--accent);font-weight:600}

@@ -29,7 +29,7 @@ const upload = multer({
 
 const menu = () => q.menuEvents.all();
 const FLASH = {
-  saved: 'Evento salvo.', created: 'Evento criado. Publique quando estiver pronto.', deleted: 'Evento excluído.',
+  saved: 'Evento salvo.', created: 'Evento criado. Ele fica em rascunho até você publicar.', deleted: 'Evento excluído.',
   dup: 'Evento duplicado como rascunho.', settings: 'Configurações gerais salvas.',
 };
 
@@ -96,7 +96,7 @@ adminRouter.get('/admin/settings', (req, res) => {
 });
 adminRouter.post('/admin/settings', (req, res) => {
   saveDefaults({ template: req.body?.template, fields: readFields(req.body) });
-  res.redirect('/admin/settings?m=settings');
+  res.redirect('/admin?m=settings');
 });
 
 // ---- prévia de template ----------------------------------------------------
@@ -193,7 +193,7 @@ adminRouter.post('/admin/events/new', handleUpload, (req, res) => {
   data.uid = `${crypto.randomUUID()}@vertuz-agenda`;
   const info = q.insert.run(data);
   if (req.body.after === 'view') return res.redirect(`/e/${data.slug}?preview=1`);
-  res.redirect(`/admin/events/${info.lastInsertRowid}?m=created`);
+  res.redirect('/admin?m=created');
 });
 
 adminRouter.post('/admin/events/:id', handleUpload, (req, res) => {
@@ -207,7 +207,7 @@ adminRouter.post('/admin/events/:id', handleUpload, (req, res) => {
   if (req.file) { removeFile(existing.hero_image); data.hero_image = req.file.filename; }
   q.update.run({ ...data, id: existing.id });
   if (req.body.after === 'view') return res.redirect(`/e/${data.slug}?preview=1`);
-  res.redirect(`/admin/events/${existing.id}?m=saved`);
+  res.redirect('/admin?m=saved');
 });
 
 adminRouter.post('/admin/events/:id/delete', (req, res) => {

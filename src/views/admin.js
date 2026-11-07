@@ -102,7 +102,7 @@ ${events.map(ev => {
   <a class="event__thumb" href="/admin/events/${ev.id}" style="background-image:url('${thumb}')"><span class="dc"><b>${esc(d.day)}</b>${esc(d.monthShort)}</span></a>
   <div class="event__main">
     <a class="event__title" href="/admin/events/${ev.id}">${esc(ev.title)}</a>
-    <div class="event__meta"><span class="status status--${esc(ev.status)}">${STATUS_LABEL[ev.status] || esc(ev.status)}</span><code>/e/${esc(ev.slug)}</code><span>${esc(d.time)}</span><span class="tplname">${esc(tpl.name)}${ev.settings_mode === 'custom' ? ' · personalizado' : ''}</span></div>
+    <div class="event__meta"><span class="status status--${esc(ev.status)}">${STATUS_LABEL[ev.status] || esc(ev.status)}</span><code>/e/${esc(ev.slug)}</code><span>${esc(d.time)}</span><span class="tplname">${esc(tpl.name)}${ev.settings_mode === 'custom' ? ' · personalizado' : ''}</span>${ev.fields.showUrl && !ev.url ? '<span class="pending">Link pendente</span>' : ''}</div>
     <div class="event__stats"><span>${ICONS.eye} ${nf(ev.views)} visitas</span><span>${ICONS.calendar} ${nf(ev.clicks_count)} agendamentos</span><span>${ICONS.users} ${nf(ev.leads_count)} e-mails</span></div>
   </div>
   <div class="event__actions">
@@ -224,7 +224,7 @@ export function renderSettings({ defaults, usingDefaults, flash, menuEvents }) {
   <section class="card">
     <div class="card__title">Campos visíveis</div>
     ${fieldChecks('fields_', defaults.fields)}
-    <p class="hint hint--box">${ICONS.lock} <span><b>E-mail obrigatório</b> esconde o link do evento e o arquivo .ics até o visitante informar o e-mail. Sem e-mail, ele vê só data, horário, descrição e local.</span></p>
+    <p class="hint hint--box">${ICONS.lock} <span><b>E-mail obrigatório</b> esconde o local, o link do evento e o arquivo .ics até o visitante informar o e-mail. Sem e-mail, ele vê só data, horário e descrição.</span></p>
   </section>
   <div class="actions actions--sticky"><button class="btn btn--primary" type="submit">${ICONS.check} Salvar configurações</button></div>
 </form>`;
@@ -290,7 +290,7 @@ ${!isNew ? `<div class="linkbox">${ICONS.link}<a href="${esc(baseUrl)}/e/${esc(e
     <div class="form-row"><label class="f"><span>Detalhes</span><textarea name="details" placeholder="Programação, o que levar, requisitos, etc.">${v('details')}</textarea></label></div>
     <div class="form-row form-row--2">
       <label class="f"><span>Local</span><input type="text" name="location" value="${v('location')}" placeholder="Endereço ou “Online”"></label>
-      <label class="f"><span>Link do evento</span><input type="url" name="url" value="${v('url')}" placeholder="https://"></label>
+      <label class="f"><span>Link do evento</span><input type="url" name="url" value="${v('url')}" placeholder="https://"><small class="hint">Pode preencher depois. Enquanto estiver vazio, a página avisa que o link será divulgado em breve.</small></label>
     </div>
     <div class="form-row"><label class="f"><span>Organização</span><input type="text" name="organizer_name" value="${v('organizer_name')}" placeholder="Ex.: Vértuz"></label></div>
     <div class="form-row">
@@ -323,7 +323,7 @@ ${!isNew ? `<div class="linkbox">${ICONS.link}<a href="${esc(baseUrl)}/e/${esc(e
     <section class="card">
       <div class="card__title">Campos visíveis</div>
       ${fieldChecks('fields_', own.fields)}
-      <p class="hint hint--box">${ICONS.lock} <span><b>E-mail obrigatório</b> esconde o link do evento e o arquivo .ics até o visitante informar o e-mail. Sem e-mail, ele vê só data, horário, descrição e local.</span></p>
+      <p class="hint hint--box">${ICONS.lock} <span><b>E-mail obrigatório</b> esconde o local, o link do evento e o arquivo .ics até o visitante informar o e-mail. Sem e-mail, ele vê só data, horário e descrição.</span></p>
     </section>
   </div>
 

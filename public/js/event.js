@@ -115,6 +115,14 @@
       var icon = row.querySelector('.row__icon');
       if (icon) icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 1 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 1 0 5.7 5.7l1-1"/></svg>';
     }
+    var loc = $('locRow');
+    if (loc && data.location) {
+      loc.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(data.location);
+      loc.classList.remove('row--locked');
+      $('locText').textContent = data.location;
+      var li = loc.querySelector('.row__icon');
+      if (li) li.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+    }
     if ($('emailField')) $('emailField').hidden = true;
     if ($('nameField')) $('nameField').hidden = true;
     if ($('unlockedNote')) { $('unlockedNote').hidden = false; $('unlockedEmail').textContent = email; }

@@ -1,0 +1,9 @@
+node_modules
+.env
+data/
+uploads/*
+!uploads/.gitkeep
+.DS_Store
+__MACOSX/
+Archive/
+Archive.zip

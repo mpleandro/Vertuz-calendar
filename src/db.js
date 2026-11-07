@@ -75,7 +75,7 @@ export const FIELD_DEFS = [
   ['showLocation', 'Local'],
   ['showUrl', 'Link do evento'],
   ['askEmail', 'Pedir e-mail'],
-  ['requireEmail', 'E-mail obrigatório', 'libera link e .ics só após o e-mail'],
+  ['requireEmail', 'E-mail obrigatório', 'local, link e .ics só após o e-mail'],
   ['askName', 'Pedir nome'],
   ['showMascot', 'Marca no rodapé'],
   ['showPoweredBy', 'Assinatura no rodapé'],

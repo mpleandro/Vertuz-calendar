@@ -8,7 +8,7 @@
   --radius:16px; --radius-btn:100px; --radius-input:100px; --radius-chip:14px;
   --font:"Satoshi",system-ui,-apple-system,sans-serif;
   --title-weight:500;
-  --hero-overlay:linear-gradient(0deg,#00050d 0%,rgba(0,5,13,.55) 45%,rgba(0,5,13,.35) 100%);
+  --hero-overlay:linear-gradient(0deg,#00050d 0%,rgba(0,5,13,.72) 42%,rgba(0,5,13,.25) 100%);
 }
 body{letter-spacing:-.01em}
 .bg{background:url('/brand/stars.jpg') center top/cover no-repeat;opacity:.55;mix-blend-mode:screen}

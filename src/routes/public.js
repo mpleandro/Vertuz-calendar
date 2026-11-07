@@ -24,7 +24,7 @@ function loadEvent(req, res, { json = false } = {}) {
 
 function accessPayload(ev, email) {
   const token = makeAccessToken(ev, email);
-  return { ok: true, token, links: calendarLinks(ev, { baseUrl: config.baseUrl, token }), url: ev.fields.showUrl ? ev.url : '' };
+  return { ok: true, token, links: calendarLinks(ev, { baseUrl: config.baseUrl, token }), url: ev.fields.showUrl ? ev.url : '', location: ev.fields.showLocation ? ev.location : '' };
 }
 
 publicRouter.get('/e/:slug', (req, res) => {

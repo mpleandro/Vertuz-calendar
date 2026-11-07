@@ -29,6 +29,7 @@ export function buildIcs(ev, { baseUrl }) {
   const pageUrl = `${baseUrl}/e/${ev.slug}`;
   const descParts = [ev.description, ev.details].filter(Boolean);
   if (ev.url) descParts.push(`Link: ${ev.url}`);
+  else descParts.push('Link do evento: ainda não divulgado. Acompanhe pela página do evento.');
   descParts.push(`Página do evento: ${pageUrl}`);
   const description = descParts.join('\n\n');
   const seq = Math.floor(new Date((ev.updated_at || '2000-01-01 00:00:00').replace(' ', 'T') + 'Z').getTime() / 1000) % 2147483647;

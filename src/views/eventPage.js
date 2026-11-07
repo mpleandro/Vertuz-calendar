@@ -26,6 +26,7 @@ export function renderEventPage(ev, { baseUrl, links, preview = false, templateO
   const timeLabel = end && sameDay ? `${start.time} – ${end.time}` : start.time;
   const tz = tzLabel(ev.timezone);
   const cta = esc(ev.cta_label || 'Salvar na minha agenda');
+  const linkPending = f.showUrl && !ev.url;
   const opt = (cal, icon, label) => links && !gated
     ? `<a class="option" data-cal="${cal}" href="${esc(cal === 'apple' || cal === 'ics' ? links.ics : links[cal])}"${cal === 'ics' ? ` download="${esc(ev.slug)}.ics"` : ' target="_blank" rel="noopener"'}>${icon}<span>${label}</span></a>`
     : `<button type="button" class="option" data-cal="${cal}">${icon}<span>${label}</span></button>`;
@@ -52,7 +53,6 @@ ${tpl.fonts.map(h => `<link rel="stylesheet" href="${h}">`).join('\n')}
 <body class="tpl tpl-${tpl.id}${gated ? ' is-gated' : ''}" data-slug="${esc(ev.slug)}" data-start="${startUtc.toISOString()}" data-gated="${gated ? 1 : 0}" data-require-email="${f.requireEmail ? 1 : 0}" data-closed="${closed ? 1 : 0}">
 <div class="bg" aria-hidden="true"></div>
 ${preview ? `<div class="preview-bar">Pré-visualização · template <b>${esc(tpl.name)}</b> · status <b>${esc({ draft: 'rascunho', published: 'publicado', closed: 'encerrado' }[ev.status] || ev.status)}</b></div>` : ''}
-<div class="strip"><span>${esc(tpl.tag)}</span><i></i><span>${esc(start.day)} ${esc(start.monthShort)}</span><i></i><span>${esc(timeLabel)}</span><i></i><span>${esc(tz)}</span></div>
 
 <main class="page">
   <header class="hero${hasHeroImg ? ' hero--img' : ' hero--noimg'}${f.showHero ? '' : ' hero--compact'}">
@@ -61,6 +61,12 @@ ${preview ? `<div class="preview-bar">Pré-visualização · template <b>${esc(t
       <div class="brand">${tpl.logo}</div>
       <span class="tag">${ICONS.calendar}<span>${esc(tpl.tag)}</span></span>
     </div>
+    <div class="hero__content">
+      <div class="hero__title">
+        <h1>${esc(ev.title)}</h1>
+        ${f.showSubtitle && ev.subtitle ? `<p class="subtitle">${esc(ev.subtitle)}</p>` : ''}
+        <div class="divider" aria-hidden="true"></div>
+      </div>
     <div class="hero__body">
       <div class="datechip"><div class="datechip__month">${esc(start.monthShort)}</div><div class="datechip__day">${esc(start.day)}</div></div>
       <div class="hero__meta">
@@ -68,14 +74,8 @@ ${preview ? `<div class="preview-bar">Pré-visualização · template <b>${esc(t
         <div class="hero__time">${ICONS.clock}<span>${esc(timeLabel)}</span><span class="tz">${esc(tz)}</span></div>
       </div>
     </div>
+    </div>
   </header>
-
-  <section class="title">
-    <p class="eyebrow">${esc(start.weekday)} · ${esc(start.date)}</p>
-    <h1>${esc(ev.title)}</h1>
-    ${f.showSubtitle && ev.subtitle ? `<p class="subtitle">${esc(ev.subtitle)}</p>` : ''}
-    <div class="divider" aria-hidden="true"></div>
-  </section>
 
   ${closed ? `
   <section class="card card--closed">
@@ -95,8 +95,9 @@ ${preview ? `<div class="preview-bar">Pré-visualização · template <b>${esc(t
   <section class="card card--cta" id="cta">
     <div class="cta__head">
       <div class="cta__title">${gated ? 'Receba o acesso e salve na sua agenda' : 'Garanta seu lugar na sua agenda'}</div>
-      <div class="cta__sub">${gated ? 'Informe seu e-mail para liberar o link do evento e o arquivo da agenda.' : `Lembrete automático ${ev.reminder_minutes > 0 ? `${reminderLabel(ev.reminder_minutes)} antes` : 'desativado'}`}</div>
+      <div class="cta__sub">${gated ? 'Informe seu e-mail para liberar o local, o link do evento e o arquivo da agenda.' : `Lembrete automático ${ev.reminder_minutes > 0 ? `${reminderLabel(ev.reminder_minutes)} antes` : 'desativado'}`}</div>
     </div>
+    ${linkPending ? `<p class="notice">${ICONS.clock}<span><b>Evento em preparação.</b> O link ainda não foi divulgado. Salve na agenda agora e volte a esta página para acessá-lo quando estiver disponível.</span></p>` : ''}
     <form id="saveForm" class="cta__form" novalidate>
       ${f.askName ? `<label class="field" id="nameField"><span>Seu nome</span><input type="text" name="name" placeholder="Como quer ser chamado" autocomplete="name"></label>` : ''}
       ${f.askEmail ? `<label class="field" id="emailField"><span>Seu e-mail ${f.requireEmail ? '' : '<em>(opcional)</em>'}</span><input type="email" name="email" placeholder="voce@email.com" autocomplete="email" inputmode="email" ${f.requireEmail ? 'required' : ''}></label>` : ''}
@@ -133,7 +134,10 @@ ${preview ? `<div class="preview-bar">Pré-visualização · template <b>${esc(t
 
   <section class="card card--rows">
     <div class="row"><span class="row__icon">${ICONS.calendar}</span><div class="row__body"><div class="row__label">Quando</div><div class="row__value">${esc(start.weekday)}, ${esc(start.date)} às ${esc(start.time)}${end ? `<br><span class="muted">até ${sameDay ? esc(end.time) : esc(end.date) + ' às ' + esc(end.time)}</span>` : ''}</div></div></div>
-    ${f.showLocation && ev.location ? `<a class="row row--link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}" target="_blank" rel="noopener"><span class="row__icon">${ICONS.pin}</span><div class="row__body"><div class="row__label">Onde</div><div class="row__value">${esc(ev.location)}</div></div><span class="row__chevron">${ICONS.chevron}</span></a>` : ''}
+    ${f.showLocation && ev.location ? (gated
+      ? `<a class="row row--link row--locked" id="locRow" target="_blank" rel="noopener"><span class="row__icon">${ICONS.lock}</span><div class="row__body"><div class="row__label">Onde</div><div class="row__value" id="locText">Liberado após informar seu e-mail</div></div><span class="row__chevron">${ICONS.chevron}</span></a>`
+      : `<a class="row row--link" href="${mapsUrl(ev.location)}" target="_blank" rel="noopener"><span class="row__icon">${ICONS.pin}</span><div class="row__body"><div class="row__label">Onde</div><div class="row__value">${esc(ev.location)}</div></div><span class="row__chevron">${ICONS.chevron}</span></a>`) : ''}
+    ${linkPending ? `<div class="row row--pending"><span class="row__icon">${ICONS.link}</span><div class="row__body"><div class="row__label">Link do evento</div><div class="row__value">Será divulgado em breve</div></div><span class="badge">Pendente</span></div>` : ''}
     ${f.showUrl && ev.url ? (gated
       ? `<a class="row row--link row--locked" id="urlRow" target="_blank" rel="noopener"><span class="row__icon">${ICONS.lock}</span><div class="row__body"><div class="row__label">Link do evento</div><div class="row__value row__value--url" id="urlText">Liberado após informar seu e-mail</div></div><span class="row__chevron">${ICONS.chevron}</span></a>`
       : `<a class="row row--link" href="${esc(ev.url)}" target="_blank" rel="noopener"><span class="row__icon">${ICONS.link}</span><div class="row__body"><div class="row__label">Link do evento</div><div class="row__value row__value--url">${esc(ev.url.replace(/^https?:\/\//, ''))}</div></div><span class="row__chevron">${ICONS.chevron}</span></a>`) : ''}
@@ -160,6 +164,10 @@ ${!closed ? `
 <script src="/js/event.js" defer></script>
 </body>
 </html>`;
+}
+
+function mapsUrl(q) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 }
 
 function reminderLabel(min) {
