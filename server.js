@@ -25,7 +25,7 @@ app.use((err, _req, res, _next) => {
   res.status(500).send('Erro interno');
 });
 
-app.listen(config.port, '0.0.0.0', () => {
+app.listen(config.port, () => {
   console.log(`Vértuz Agenda rodando em ${config.baseUrl} (porta ${config.port})`);
   console.log(`Admin: ${config.baseUrl}/admin`);
 });

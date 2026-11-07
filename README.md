@@ -74,13 +74,13 @@ docker compose up -d --build
 
 Gere o segredo com `openssl rand -hex 32`. O domínio `cal.vertuzclub.com.br` já está no `Caddyfile`.
 
-Em produção o app **não sobe** se `ADMIN_PASSWORD` ou `SESSION_SECRET` estiverem com valores de exemplo, ou se o segredo tiver menos de 32 caracteres. Isso evita deixar o painel aberto com senha conhecida.
+Em produção o app **não sobe** se `ADMIN_PASSWORD` for `admin` ou `TROQUE-ESTA-SENHA`, ou se `SESSION_SECRET` for o padrão de desenvolvimento. Outros valores fracos geram só um aviso no log.
 
 Se usar um painel (Easypanel, Coolify, Dokploy) em vez do `docker-compose.yml`: aponte para este repositório com o `Dockerfile`, porta interna `3000`, defina as variáveis do `.env` no painel e monte volumes persistentes em `/app/data` e `/app/uploads`.
 
 ### Erro 502 no domínio
 
-O proxy está no ar, mas o app não respondeu. Veja o log do contêiner (`docker compose logs app` ou a aba de logs do painel). A causa mais comum é a mensagem `ERRO: ADMIN_PASSWORD está com o valor de exemplo`: troque a senha no `.env` e reinicie. O endereço `/healthz` responde `{"ok":true}` quando o app está saudável.
+O proxy está no ar, mas o app não respondeu. Veja o log do contêiner (`docker compose logs app` ou a aba de logs do painel). Se aparecer `ERRO: defina ADMIN_PASSWORD e SESSION_SECRET`, troque os valores no `.env` ou nas variáveis do painel e reinicie. O endereço `/healthz` responde `{"ok":true}` quando o app está saudável.
 
 Dados ficam em `data/` (SQLite) e imagens em `uploads/`. Faça backup dessas duas pastas.
 
