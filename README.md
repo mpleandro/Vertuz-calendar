@@ -66,11 +66,21 @@ O link do evento pode ser preenchido depois. Enquanto estiver vazio, a página m
 ## Deploy na VPS (Docker + Caddy)
 
 ```bash
-git clone <repo> vertuz-agenda && cd vertuz-agenda
-cp .env.example .env            # BASE_URL=https://agenda.seudominio.com.br, senha forte, segredo longo
-nano Caddyfile                  # troque o domínio
+git clone https://github.com/mpleandro/Vertuz-calendar.git && cd Vertuz-calendar
+cp .env.example .env
+nano .env                       # senha forte em ADMIN_PASSWORD e SESSION_SECRET de 64 caracteres
 docker compose up -d --build
 ```
+
+Gere o segredo com `openssl rand -hex 32`. O domínio `cal.vertuzclub.com.br` já está no `Caddyfile`.
+
+Em produção o app **não sobe** se `ADMIN_PASSWORD` ou `SESSION_SECRET` estiverem com valores de exemplo, ou se o segredo tiver menos de 32 caracteres. Isso evita deixar o painel aberto com senha conhecida.
+
+Se usar um painel (Easypanel, Coolify, Dokploy) em vez do `docker-compose.yml`: aponte para este repositório com o `Dockerfile`, porta interna `3000`, defina as variáveis do `.env` no painel e monte volumes persistentes em `/app/data` e `/app/uploads`.
+
+### Erro 502 no domínio
+
+O proxy está no ar, mas o app não respondeu. Veja o log do contêiner (`docker compose logs app` ou a aba de logs do painel). A causa mais comum é a mensagem `ERRO: ADMIN_PASSWORD está com o valor de exemplo`: troque a senha no `.env` e reinicie. O endereço `/healthz` responde `{"ok":true}` quando o app está saudável.
 
 Dados ficam em `data/` (SQLite) e imagens em `uploads/`. Faça backup dessas duas pastas.
 

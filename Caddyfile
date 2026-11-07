@@ -1,5 +1,5 @@
 # Troque pelo seu domínio. O Caddy emite o certificado HTTPS automaticamente.
-agenda.seudominio.com.br {
+cal.vertuzclub.com.br {
     encode gzip zstd
     reverse_proxy app:3000
 }

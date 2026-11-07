@@ -14,6 +14,8 @@ app.use(express.urlencoded({ extended: false, limit: '64kb' }));
 app.use(express.static(path.resolve('public'), { maxAge: '7d', etag: true }));
 app.use('/uploads', express.static(config.uploadsDir, { maxAge: '30d', immutable: true }));
 
+app.get('/healthz', (_req, res) => res.set('Cache-Control', 'no-store').json({ ok: true }));
+
 app.use(publicRouter);
 app.use(adminRouter);
 
@@ -23,7 +25,7 @@ app.use((err, _req, res, _next) => {
   res.status(500).send('Erro interno');
 });
 
-app.listen(config.port, () => {
+app.listen(config.port, '0.0.0.0', () => {
   console.log(`Vértuz Agenda rodando em ${config.baseUrl} (porta ${config.port})`);
   console.log(`Admin: ${config.baseUrl}/admin`);
 });
