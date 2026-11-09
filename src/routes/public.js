@@ -4,7 +4,8 @@ import { config } from '../config.js';
 import { buildIcs } from '../ics.js';
 import { calendarLinks, makeAccessToken, verifyAccessToken } from '../calendarLinks.js';
 import { renderEventPage } from '../views/eventPage.js';
-import { isAuthed } from '../auth.js';
+import { currentUser } from '../auth.js';
+import { canAccessEvent } from '../access.js';
 import { dispatch } from '../webhooks.js';
 import { toZonedIso } from '../time.js';
 
@@ -35,8 +36,9 @@ const utmBlock = o => ({ source: o.utm_source, medium: o.utm_medium, campaign: o
 /** Carrega o evento visível ao público (ou ao admin em pré-visualização). */
 function loadEvent(req, res, { json = false } = {}) {
   const ev = hydrate(q.bySlug.get(req.params.slug));
-  const preview = req.query.preview === '1' && isAuthed(req);
-  if (!ev || (ev.status === 'draft' && !preview && !isAuthed(req))) {
+  const owner = !!ev && canAccessEvent(currentUser(req), ev);
+  const preview = req.query.preview === '1' && owner;
+  if (!ev || (ev.status === 'draft' && !owner)) {
     if (json) res.status(404).json({ error: 'not_found' }); else res.status(404).send(notFound());
     return null;
   }
@@ -59,7 +61,7 @@ publicRouter.get('/e/:slug', (req, res) => {
 
 publicRouter.get('/e/:slug/evento.ics', (req, res) => {
   const r = loadEvent(req, res); if (!r) return;
-  if (r.ev.fields.requireEmail && !verifyAccessToken(r.ev, req.query.t) && !isAuthed(req)) {
+  if (r.ev.fields.requireEmail && !verifyAccessToken(r.ev, req.query.t) && !canAccessEvent(currentUser(req), r.ev)) {
     return res.status(403).send(locked(r.ev.slug));
   }
   res.set({
@@ -87,7 +89,7 @@ publicRouter.post('/e/:slug/click', (req, res) => {
   q.addClick.run({ event_id: ev.id, calendar: cal, platform: plat, ...origin });
   res.status(204).end();
   // Único disparo de webhook: o visitante salvou/baixou o evento na agenda.
-  const preview = req.body?.preview === true && isAuthed(req);
+  const preview = req.body?.preview === true && canAccessEvent(currentUser(req), ev);
   if (ev.status === 'draft' || preview) return;
   const email = String(req.body?.email || '').trim().toLowerCase().slice(0, 200);
   const name = String(req.body?.name || '').trim().slice(0, 120);

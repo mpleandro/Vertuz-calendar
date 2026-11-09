@@ -13,6 +13,7 @@ if (fs.existsSync(envPath)) {
 export const config = {
   port: Number(process.env.PORT || 3000),
   baseUrl: (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, ''),
+  adminUser: (process.env.ADMIN_USER || 'admin').trim(),
   adminPassword: process.env.ADMIN_PASSWORD || 'admin',
   sessionSecret: process.env.SESSION_SECRET || 'dev-secret-change-me',
   defaultTz: process.env.DEFAULT_TZ || 'America/Sao_Paulo',

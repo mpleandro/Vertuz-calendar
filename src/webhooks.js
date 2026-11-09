@@ -1,8 +1,8 @@
-// Disparo de webhooks (lead.created, calendar.clicked, webhook.test).
-// A URL do evento substitui a URL geral; sem nenhuma das duas, nada é enviado.
+// Disparo de webhooks (event.saved, webhook.test).
+// Ordem: URL do evento > URL da pasta > URL geral. Sem nenhuma, nada é enviado.
 import crypto from 'node:crypto';
 import { config } from './config.js';
-import { getWebhookSettings } from './db.js';
+import { getWebhookSettings, q } from './db.js';
 import { zonedToUtc, addMinutes, toZonedIso } from './time.js';
 
 const TIMEOUT_MS = 8000;
@@ -12,6 +12,9 @@ const RETRY_DELAYS_MS = [0, 5000, 30000]; // 3 tentativas
 export function resolveWebhook(ev) {
   const own = String(ev?.webhook_url || '').trim();
   if (own) return { url: own, scope: 'event' };
+  const folder = ev?.folder_id ? q.folderById.get(ev.folder_id) : null;
+  const fUrl = String(folder?.webhook_url || '').trim();
+  if (fUrl) return { url: fUrl, scope: 'folder' };
   const g = getWebhookSettings();
   if (g.url) return { url: g.url, scope: 'global' };
   return null;
@@ -35,6 +38,7 @@ function eventBlock(ev) {
     online_url: ev.url || '',
     organizer_name: ev.organizer_name || '',
     page_url: `${config.baseUrl}/e/${ev.slug}`,
+    folder: ev.folder_id ? (({ id, name }) => ({ id, name }))(q.folderById.get(ev.folder_id) || { id: ev.folder_id, name: '' }) : null,
     require_email: !!ev.fields?.requireEmail,
   };
 }
@@ -99,9 +103,9 @@ export function dispatch(type, ev, data) {
 }
 
 /** Envio de teste a partir do admin; aguarda o resultado. */
-export async function sendTest(url, ev) {
+export async function sendTest(url, ev, scope = 'global') {
   const payload = buildPayload('webhook.test', ev, {
     lead: { id: 0, email: 'teste@exemplo.com', name: 'Teste Vértuz', calendar: 'google', platform: 'other', created_at: toZonedIso(new Date(), ev.timezone) },
-  }, 'global');
+  }, scope);
   return postOnce(url, JSON.stringify(payload), payload);
 }

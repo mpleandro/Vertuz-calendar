@@ -72,7 +72,23 @@
   });
 
   // ---- filtro do dashboard ----
-  document.querySelectorAll('[data-autosubmit]').forEach(function (s) { s.addEventListener('change', function () { s.form.submit(); }); });
+  document.querySelectorAll('[data-autosubmit]').forEach(function (s) {
+    s.addEventListener('change', function () {
+      if (s.dataset.reset && s.form.elements[s.dataset.reset]) s.form.elements[s.dataset.reset].value = '';
+      s.form.submit();
+    });
+  });
+
+  // ---- menus "mais ações": fecha ao clicar fora / abrir outro ----
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('details.more[open], details.newfolder[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; });
+  });
+  // "Nova pasta" pelo link do menu (#nova-pasta)
+  function openNewFolder() {
+    var d = $('nova-pasta'); if (!d || location.hash !== '#nova-pasta') return;
+    d.open = true; setNav(false); var i = d.querySelector('input'); if (i) setTimeout(function () { i.focus(); }, 50);
+  }
+  openNewFolder(); window.addEventListener('hashchange', openNewFolder);
 
   // ---- tooltip dos gráficos ----
   var tip = $('tooltip');

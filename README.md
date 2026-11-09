@@ -22,12 +22,25 @@ O `.ics` usa um `UID` fixo por evento: se você editar a data e a pessoa salvar 
 
 ## Painel admin
 
-| Menu | O que faz |
-|---|---|
-| Início | Botão grande para criar evento e a lista de eventos, com atalho para o dashboard |
-| Dashboard | Soma de agendamentos, visitas, e-mails e conversão de todos os eventos, ou de um só pelo filtro |
-| Configurações gerais | Template e campos visíveis aplicados a todos os eventos em "configurações padrão" |
-| Eventos | Um item por evento. Básico, Quando e Conteúdo sempre; Aparência e Campos só se "personalizadas" |
+| Menu | Quem vê | O que faz |
+|---|---|---|
+| Início | todos | Números do período, pastas como filtros, lista de eventos com "Copiar link", "Editar" e "•••" (ver, métricas, duplicar, excluir) |
+| Dashboard | todos | Agendamentos, visitas, e-mails, conversão, fontes e campanhas. Filtro por pasta e por evento. Exportação de e-mails em CSV |
+| Usuários | administrador | Cadastra profissionais (nome, login, senha), troca senha, desativa ou exclui |
+| Configurações gerais | administrador | Template e campos padrão, webhook geral e segredo de assinatura |
+| Pastas (menu lateral) | todos | Cada pasta abre e mostra seus eventos; dá para criar evento direto nela |
+| Minha conta (rodapé) | todos | Profissional troca a própria senha |
+
+## Usuários e pastas
+
+- **Administrador (master):** login `ADMIN_USER` e senha `ADMIN_PASSWORD`, definidos nas variáveis da VPS. Vê e edita tudo e cadastra os profissionais em *Usuários*.
+- **Profissional:** login e senha próprios. Vê só as pastas dele e os eventos, métricas e e-mails dessas pastas. Não acessa *Usuários* nem *Configurações gerais*.
+- Todo usuário novo ganha uma pasta com o nome dele. Ele pode criar outras (*Nova pasta*).
+- O administrador pode criar pastas para qualquer profissional e mudar o dono de uma pasta.
+- Uma pasta só pode ser excluída vazia. Excluir um usuário não apaga nada: as pastas dele passam para o administrador.
+- Trocar a senha ou desativar um usuário desconecta-o de todos os aparelhos.
+- Eventos criados antes desta versão aparecem em *Sem pasta* (só o administrador vê). Abra o evento e escolha a pasta.
+- O login tem trava: 8 tentativas erradas do mesmo IP bloqueiam por 15 minutos.
 
 ## Templates
 
@@ -54,7 +67,7 @@ O webhook dispara **somente quando o visitante salva/baixa o evento** na agenda 
 - `event.saved`: o visitante escolheu uma agenda. Leva o e-mail/nome (se informados) e a origem (UTM + referrer).
 - `webhook.test`: enviado pelo botão "Salvar e enviar teste" nas configurações gerais.
 
-**Qual URL recebe:** a do evento (campo *Webhook* no formulário do evento). Se estiver vazia, vale a URL geral (*Configurações gerais > Webhook*). Sem nenhuma das duas, nada é enviado. Rascunhos e pré-visualizações não disparam.
+**Qual URL recebe:** a do evento (campo *Webhook* no formulário do evento) → se vazia, a da pasta (*Editar pasta*) → se vazia, a geral (*Configurações gerais*). Sem nenhuma, nada é enviado. O campo `webhook_scope` diz qual foi usada (`event`, `folder` ou `global`) e `event.folder` traz `{ id, name }` da pasta. Rascunhos e pré-visualizações não disparam.
 
 **Cabeçalhos:** `X-Vertuz-Event` (tipo), `X-Vertuz-Delivery` (id único, útil para ignorar repetidos) e, se houver segredo configurado, `X-Vertuz-Signature: sha256=<HMAC-SHA256 do corpo>`.
 
@@ -113,7 +126,7 @@ Use links como `https://cal.vertuzclub.com.br/e/imersao?utm_source=instagram&utm
 ```bash
 git clone https://github.com/mpleandro/Vertuz-calendar.git && cd Vertuz-calendar
 cp .env.example .env
-nano .env                       # senha forte em ADMIN_PASSWORD e SESSION_SECRET de 64 caracteres
+nano .env                       # ADMIN_USER, senha forte em ADMIN_PASSWORD e SESSION_SECRET de 64 caracteres
 docker compose up -d --build
 ```
 
@@ -121,7 +134,7 @@ Gere o segredo com `openssl rand -hex 32`. O domínio `cal.vertuzclub.com.br` j�
 
 Em produção o app **não sobe** se `ADMIN_PASSWORD` for `admin` ou `TROQUE-ESTA-SENHA`, ou se `SESSION_SECRET` for o padrão de desenvolvimento. Outros valores fracos geram só um aviso no log.
 
-Se usar um painel (Easypanel, Coolify, Dokploy) em vez do `docker-compose.yml`: aponte para este repositório com o `Dockerfile`, porta interna `3000`, defina as variáveis do `.env` no painel e monte volumes persistentes em `/app/data` e `/app/uploads`.
+Se usar um painel (Easypanel, Coolify, Dokploy) em vez do `docker-compose.yml`: aponte para este repositório com o `Dockerfile`, porta interna `3000`, defina as variáveis do `.env` no painel (inclusive `ADMIN_USER`) e monte volumes persistentes em `/app/data` e `/app/uploads`.
 
 ### Erro 502 no domínio
 
