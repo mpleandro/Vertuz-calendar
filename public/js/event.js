@@ -17,6 +17,22 @@
   var primary = (isIOS || isMac) ? 'apple' : 'google';
   if ($('saveHint')) $('saveHint').textContent = NAMES[primary];
 
+  // ---- Origem (UTM + referrer) -------------------------------------------------
+  // Guardada na sessão para sobreviver a recarregamentos sem os parâmetros na URL.
+  var origin = {};
+  (function () {
+    var key = 'va:origin:' + slug, keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    var params = new URLSearchParams(location.search), fromUrl = {}, has = false;
+    keys.forEach(function (k) { var v = params.get(k); if (v) { fromUrl[k] = v; has = true; } });
+    var stored = null;
+    try { stored = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (_) {}
+    if (has) { fromUrl.referrer = document.referrer || ''; origin = fromUrl; }
+    else if (stored) origin = stored;
+    else origin = { referrer: document.referrer || '' };
+    try { sessionStorage.setItem(key, JSON.stringify(origin)); } catch (_) {}
+  })();
+  function withOrigin(data) { for (var k in origin) data[k] = origin[k]; return data; }
+
   // ---- Contagem regressiva -----------------------------------------------------
   var cd = $('countdown');
   var startAt = new Date(body.dataset.start).getTime();
@@ -84,7 +100,7 @@
       // Abre a aba já no clique (senão o navegador bloqueia o pop-up depois do await).
       var win = (cal !== 'apple' && cal !== 'ics') ? window.open('about:blank', '_blank') : null;
       busy = true; setLoading(true);
-      postJSON('/e/' + slug + '/lead', { email: email, name: nameInput ? nameInput.value.trim() : '', calendar: cal, platform: platform })
+      postJSON('/e/' + slug + '/lead', withOrigin({ email: email, name: nameInput ? nameInput.value.trim() : '', calendar: cal, platform: platform }))
         .then(function (data) {
           if (!data || !data.links) throw new Error('sem acesso');
           try { localStorage.setItem('va:' + slug, JSON.stringify({ t: data.token, email: email })); } catch (_) {}
@@ -99,7 +115,7 @@
 
     if (email && !state.leadSent) {
       state.leadSent = true;
-      postJSON('/e/' + slug + '/lead', { email: email, name: nameInput ? nameInput.value.trim() : '', calendar: cal, platform: platform }).catch(function () {});
+      postJSON('/e/' + slug + '/lead', withOrigin({ email: email, name: nameInput ? nameInput.value.trim() : '', calendar: cal, platform: platform })).catch(function () {});
     }
     toast(cal);
     openCal(cal, null);
@@ -161,7 +177,13 @@
   }
 
   // ---- Rede ---------------------------------------------------------------------
-  function track(cal) { postJSON('/e/' + slug + '/click', { calendar: cal, platform: platform }).catch(function () {}); }
+  function track(cal) {
+    var data = withOrigin({ calendar: cal, platform: platform, preview: !!cfg.preview });
+    var email = emailInput ? emailInput.value.trim() : '';
+    if (!email && state.unlocked && $('unlockedEmail')) email = $('unlockedEmail').textContent.trim();
+    if (email) { data.email = email; data.name = nameInput ? nameInput.value.trim() : ''; }
+    postJSON('/e/' + slug + '/click', data).catch(function () {});
+  }
   function postJSON(url, data) {
     return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), keepalive: true })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.status === 204 ? null : r.json(); });

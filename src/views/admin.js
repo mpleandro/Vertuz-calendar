@@ -135,7 +135,9 @@ export function renderDashboard({ data, events, eventId, days, menuEvents }) {
     return `<g class="bar" data-tip="<b>${d.n}</b> agendamento${d.n === 1 ? '' : 's'}<br>${d.label}">${path ? `<path d="${path}"/>` : ''}<rect class="hit" x="${PL + i * slot}" y="${PT}" width="${slot}" height="${H - PT - PB}"/></g>`;
   };
   const xLabels = [0, Math.floor(days.length / 2), days.length - 1].map(i => `<text x="${PL + i * slot + slot / 2}" y="${H - 6}" text-anchor="middle">${days[i].short}</text>`).join('');
-  const hbars = (rows, names, total) => rows.length ? `<div class="hbars">${rows.map(r => `<div class="hbar" data-tip="<b>${r.n}</b> · ${pct(r.n, total)}"><span class="hbar__k">${esc(names[r.k] || r.k || 'Outro')}</span><span class="hbar__track"><i style="width:${Math.max(2, Math.round(r.n / Math.max(...rows.map(x => x.n)) * 100))}%"></i></span><span class="hbar__v">${nf(r.n)}</span></div>`).join('')}</div>` : '<p class="hint">Ainda sem agendamentos.</p>';
+  const leadMap = Object.fromEntries((data.leadsBySource || []).map(r => [r.k, r.n]));
+  const leadsOf = k => leadMap[k] ? ` · ${nf(leadMap[k])} e-mail${leadMap[k] === 1 ? '' : 's'}` : '';
+  const hbars = (rows, names, total) => rows.length ? `<div class="hbars">${rows.map(r => `<div class="hbar" data-tip="<b>${r.n}</b> · ${pct(r.n, total)}${esc(r.tip || '')}"><span class="hbar__k">${esc(names[r.k] || r.k || 'Outro')}</span><span class="hbar__track"><i style="width:${Math.max(2, Math.round(r.n / Math.max(...rows.map(x => x.n)) * 100))}%"></i></span><span class="hbar__v">${nf(r.n)}</span></div>`).join('')}</div>` : '<p class="hint">Ainda sem agendamentos.</p>';
 
   const body = `
 <div class="page-head">
@@ -172,6 +174,11 @@ export function renderDashboard({ data, events, eventId, days, menuEvents }) {
 </section>
 
 <div class="grid2">
+  <section class="card"><div class="card__title">Por fonte</div>${hbars(data.bySource.map(r => ({ ...r, tip: leadsOf(r.k) })), { '': 'Direto / sem fonte' }, t.saves)}<p class="hint" style="margin-top:12px">Fonte = <code>utm_source</code> do link; sem UTM, o site de onde a pessoa veio.</p></section>
+  <section class="card"><div class="card__title">Por campanha</div>${hbars(data.byCampaign, { '': 'Sem campanha' }, t.saves)}</section>
+</div>
+
+<div class="grid2">
   <section class="card"><div class="card__title">Por calendário</div>${hbars(data.byCalendar, CAL_NAMES, t.saves)}</section>
   <section class="card"><div class="card__title">Por dispositivo</div>${hbars(data.byPlatform, PLAT_NAMES, t.saves)}</section>
 </div>
@@ -186,8 +193,8 @@ ${sel ? '' : `
 
 <section class="card">
   <div class="card__title">E-mails mais recentes</div>
-  ${data.recentLeads.length ? `<div class="tablewrap"><table><thead><tr><th>E-mail</th>${sel ? '' : '<th>Evento</th>'}<th>Nome</th><th>Calendário</th><th>Dispositivo</th><th>Quando</th></tr></thead><tbody>
-  ${data.recentLeads.map(l => `<tr><td class="mono">${esc(l.email)}</td>${sel ? '' : `<td>${esc(l.event_title)}</td>`}<td>${esc(l.name || '—')}</td><td>${esc(CAL_NAMES[l.calendar] || l.calendar || '—')}</td><td>${esc(PLAT_NAMES[l.platform] || l.platform || '—')}</td><td class="mono">${esc(l.created_local.slice(0, 16))}</td></tr>`).join('')}
+  ${data.recentLeads.length ? `<div class="tablewrap"><table><thead><tr><th>E-mail</th>${sel ? '' : '<th>Evento</th>'}<th>Nome</th><th>Fonte</th><th>Calendário</th><th>Dispositivo</th><th>Quando</th></tr></thead><tbody>
+  ${data.recentLeads.map(l => `<tr><td class="mono">${esc(l.email)}</td>${sel ? '' : `<td>${esc(l.event_title)}</td>`}<td>${esc(l.name || '—')}</td><td>${esc([l.source, l.utm_campaign].filter(Boolean).join(' · ') || 'Direto')}</td><td>${esc(CAL_NAMES[l.calendar] || l.calendar || '—')}</td><td>${esc(PLAT_NAMES[l.platform] || l.platform || '—')}</td><td class="mono">${esc(l.created_local.slice(0, 16))}</td></tr>`).join('')}
   </tbody></table></div>` : '<p class="hint">Nenhum e-mail capturado ainda.</p>'}
 </section>`;
   return layout({ title: 'Dashboard', active: 'dashboard', body, menuEvents });

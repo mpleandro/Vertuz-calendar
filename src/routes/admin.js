@@ -79,8 +79,8 @@ adminRouter.get('/admin/events/:id/leads', (req, res) => res.redirect(`/admin/da
 adminRouter.get('/admin/leads.csv', (req, res) => {
   const eventId = Number(req.query.event) || null;
   const rows = leadsForExport(eventId, tzOffsetMinutes(config.defaultTz));
-  const csv = ['email,nome,evento,calendario,dispositivo,data']
-    .concat(rows.map(r => [r.email, r.name, r.event_title, r.calendar, r.platform, r.created_local].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')))
+  const csv = ['email,nome,evento,calendario,dispositivo,data,fonte,utm_source,utm_medium,utm_campaign,utm_content,utm_term,referrer']
+    .concat(rows.map(r => [r.email, r.name, r.event_title, r.calendar, r.platform, r.created_local, r.source, r.utm_source, r.utm_medium, r.utm_campaign, r.utm_content, r.utm_term, r.referrer].map(v => `"${String(v ?? '').replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`).join(',')))
     .join('\r\n');
   const ev = eventId ? q.byId.get(eventId) : null;
   res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="leads-${ev ? ev.slug : 'todos'}.csv"` });

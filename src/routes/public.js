@@ -12,6 +12,25 @@ export const publicRouter = Router();
 const CALS = new Set(['google', 'apple', 'outlook', 'office365', 'yahoo', 'ics']);
 const PLATS = new Set(['ios', 'android', 'mac', 'windows', 'other']);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+
+/** UTMs e referrer enviados pela página; "source" = utm_source, senão o domínio de origem. */
+function readOrigin(body) {
+  const clean = v => String(v || '').trim().slice(0, 200);
+  const out = {};
+  for (const k of UTM_KEYS) out[k] = clean(body?.[k]);
+  out.utm_source = out.utm_source.toLowerCase();
+  let refHost = '';
+  try {
+    const u = new URL(clean(body?.referrer) || 'x:');
+    const own = new URL(config.baseUrl).hostname;
+    if (/^https?:$/.test(u.protocol) && u.hostname !== own) refHost = u.hostname.replace(/^(www|m|l|lm)\./, '');
+  } catch {}
+  out.referrer = refHost;
+  out.source = out.utm_source || refHost;
+  return out;
+}
+const utmBlock = o => ({ source: o.utm_source, medium: o.utm_medium, campaign: o.utm_campaign, content: o.utm_content, term: o.utm_term });
 
 /** Carrega o evento visível ao público (ou ao admin em pré-visualização). */
 function loadEvent(req, res, { json = false } = {}) {
@@ -64,9 +83,20 @@ publicRouter.post('/e/:slug/click', (req, res) => {
   if (!ev) return res.status(404).end();
   const cal = CALS.has(req.body?.calendar) ? req.body.calendar : 'other';
   const plat = PLATS.has(req.body?.platform) ? req.body.platform : 'other';
-  q.addClick.run(ev.id, cal, plat);
+  const origin = readOrigin(req.body);
+  q.addClick.run({ event_id: ev.id, calendar: cal, platform: plat, ...origin });
   res.status(204).end();
-  if (ev.status !== 'draft') dispatch('calendar.clicked', ev, { click: { calendar: cal, platform: plat, created_at: toZonedIso(new Date(), ev.timezone) } });
+  // Único disparo de webhook: o visitante salvou/baixou o evento na agenda.
+  const preview = req.body?.preview === true && isAuthed(req);
+  if (ev.status === 'draft' || preview) return;
+  const email = String(req.body?.email || '').trim().toLowerCase().slice(0, 200);
+  const name = String(req.body?.name || '').trim().slice(0, 120);
+  dispatch('event.saved', ev, {
+    click: { calendar: cal, platform: plat, created_at: toZonedIso(new Date(), ev.timezone) },
+    lead: EMAIL_RE.test(email) ? { email, name } : null,
+    utm: utmBlock(origin),
+    referrer: origin.referrer,
+  });
 });
 
 publicRouter.post('/e/:slug/lead', (req, res) => {
@@ -76,10 +106,7 @@ publicRouter.post('/e/:slug/lead', (req, res) => {
   const name = String(req.body?.name || '').trim().slice(0, 120);
   const cal = CALS.has(req.body?.calendar) ? req.body.calendar : '';
   const plat = PLATS.has(req.body?.platform) ? req.body.platform : '';
-  const info = q.addLead.run(r.ev.id, email, name, cal, plat);
-  if (!r.preview && r.ev.status !== 'draft') {
-    dispatch('lead.created', r.ev, { lead: { id: Number(info.lastInsertRowid), email, name, calendar: cal, platform: plat, created_at: toZonedIso(new Date(), r.ev.timezone) } });
-  }
+  q.addLead.run({ event_id: r.ev.id, email, name, calendar: cal, platform: plat, ...readOrigin(req.body) });
   // E-mail obrigatório: só agora o navegador recebe o link do evento e o .ics.
   if (r.ev.fields.requireEmail) return res.json(accessPayload(r.ev, email));
   res.json({ ok: true });

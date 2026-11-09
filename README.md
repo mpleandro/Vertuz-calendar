@@ -49,10 +49,9 @@ O link do evento pode ser preenchido depois. Enquanto estiver vazio, a página m
 
 ## Webhooks
 
-Cada ação de visitante gera um `POST` com JSON:
+O webhook dispara **somente quando o visitante salva/baixa o evento** na agenda (Google, Apple, Outlook, Office 365, Yahoo ou arquivo .ics). Informar o e-mail sozinho não dispara.
 
-- `lead.created`: alguém informou o e-mail na página do evento.
-- `calendar.clicked`: alguém escolheu uma agenda (Google, Apple, Outlook, Office 365, Yahoo, .ics).
+- `event.saved`: o visitante escolheu uma agenda. Leva o e-mail/nome (se informados) e a origem (UTM + referrer).
 - `webhook.test`: enviado pelo botão "Salvar e enviar teste" nas configurações gerais.
 
 **Qual URL recebe:** a do evento (campo *Webhook* no formulário do evento). Se estiver vazia, vale a URL geral (*Configurações gerais > Webhook*). Sem nenhuma das duas, nada é enviado. Rascunhos e pré-visualizações não disparam.
@@ -64,7 +63,7 @@ Cada ação de visitante gera um `POST` com JSON:
 ```json
 {
   "id": "whk_8f3c2a1e-6b4d-4f0a-9c2e-1d7b5a9e3f10",
-  "type": "lead.created",
+  "type": "event.saved",
   "version": 1,
   "occurred_at": "2026-11-09T10:45:12-03:00",
   "source": "https://cal.vertuzclub.com.br",
@@ -76,11 +75,22 @@ Cada ação de visitante gera um `POST` com JSON:
     "location": "Av. Paulista, 1000", "online_url": "https://zoom.us/j/123", "organizer_name": "Vértuz",
     "page_url": "https://cal.vertuzclub.com.br/e/imersao", "require_email": true
   },
-  "lead": { "id": 345, "email": "maria@exemplo.com", "name": "Maria", "calendar": "google", "platform": "ios", "created_at": "2026-11-09T10:45:12-03:00" }
+  "click": { "calendar": "google", "platform": "ios", "created_at": "2026-11-09T10:45:12-03:00" },
+  "lead": { "email": "maria@exemplo.com", "name": "Maria" },
+  "utm": { "source": "instagram", "medium": "stories", "campaign": "black-friday", "content": "", "term": "" },
+  "referrer": "instagram.com"
 }
 ```
 
-Em `calendar.clicked`, o bloco `lead` é trocado por `"click": { "calendar": "apple", "platform": "mac", "created_at": "…" }`.
+`lead` é `null` quando o visitante não informou e-mail.
+
+## UTM e fontes
+
+Use links como `https://cal.vertuzclub.com.br/e/imersao?utm_source=instagram&utm_medium=stories&utm_campaign=black-friday`. A página guarda os parâmetros na sessão do navegador e envia junto com o e-mail e o clique em salvar.
+
+- **Fonte** = `utm_source` (em minúsculas). Sem UTM, vale o site de onde a pessoa veio (ex.: `youtube.com`). Sem nenhum dos dois, aparece como *Direto*.
+- O dashboard mostra agendamentos **por fonte** e **por campanha**, e a fonte de cada e-mail.
+- O CSV de e-mails traz `fonte`, todos os `utm_*` e `referrer`.
 
 ## Rotas
 

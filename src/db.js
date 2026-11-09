@@ -65,6 +65,12 @@ const cols = db.prepare('PRAGMA table_info(events)').all().map(c => c.name);
 if (!cols.includes('settings_mode')) db.exec(`ALTER TABLE events ADD COLUMN settings_mode TEXT DEFAULT 'default'`);
 if (!cols.includes('template')) db.exec(`ALTER TABLE events ADD COLUMN template TEXT DEFAULT '${DEFAULT_TEMPLATE}'`);
 if (!cols.includes('webhook_url')) db.exec(`ALTER TABLE events ADD COLUMN webhook_url TEXT DEFAULT ''`);
+// Origem do visitante (UTM + referrer) em leads e cliques
+export const UTM_COLS = ['source', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'referrer'];
+for (const table of ['leads', 'clicks']) {
+  const have = db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name);
+  for (const c of UTM_COLS) if (!have.includes(c)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${c} TEXT DEFAULT ''`);
+}
 
 // ---- campos visíveis -------------------------------------------------------
 export const FIELD_DEFS = [
@@ -155,8 +161,10 @@ export const q = {
     fields=@fields, cta_label=@cta_label, settings_mode=@settings_mode, template=@template, webhook_url=@webhook_url, updated_at=datetime('now') WHERE id=@id`),
   remove: db.prepare('DELETE FROM events WHERE id = ?'),
   bumpViews: db.prepare('UPDATE events SET views = views + 1 WHERE id = ?'),
-  addClick: db.prepare('INSERT INTO clicks (event_id, calendar, platform) VALUES (?, ?, ?)'),
-  addLead: db.prepare('INSERT INTO leads (event_id, email, name, calendar, platform) VALUES (?, ?, ?, ?, ?)'),
+  addClick: db.prepare(`INSERT INTO clicks (event_id, calendar, platform, source, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer)
+    VALUES (@event_id, @calendar, @platform, @source, @utm_source, @utm_medium, @utm_campaign, @utm_content, @utm_term, @referrer)`),
+  addLead: db.prepare(`INSERT INTO leads (event_id, email, name, calendar, platform, source, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer)
+    VALUES (@event_id, @email, @name, @calendar, @platform, @source, @utm_source, @utm_medium, @utm_campaign, @utm_content, @utm_term, @referrer)`),
 };
 
 // ---- dashboard -------------------------------------------------------------
@@ -177,13 +185,16 @@ export function dashboardData(eventId, tzOffsetMin) {
     ${where ? where + ' AND' : 'WHERE'} created_at >= datetime('now', '-30 days') GROUP BY d ORDER BY d`).all(p);
   const byCalendar = db.prepare(`SELECT calendar k, COUNT(*) n FROM clicks ${where} GROUP BY calendar ORDER BY n DESC`).all(p);
   const byPlatform = db.prepare(`SELECT platform k, COUNT(*) n FROM clicks ${where} GROUP BY platform ORDER BY n DESC`).all(p);
+  const bySource = db.prepare(`SELECT COALESCE(source,'') k, COUNT(*) n FROM clicks ${where} GROUP BY k ORDER BY n DESC LIMIT 12`).all(p);
+  const byCampaign = db.prepare(`SELECT COALESCE(utm_campaign,'') k, COUNT(*) n FROM clicks ${where} GROUP BY k ORDER BY n DESC LIMIT 12`).all(p);
+  const leadsBySource = db.prepare(`SELECT COALESCE(source,'') k, COUNT(*) n FROM leads ${where} GROUP BY k`).all(p);
   const perEvent = db.prepare(`SELECT e.id, e.title, e.slug, e.status, e.start_local, e.views,
       (SELECT COUNT(*) FROM clicks c WHERE c.event_id=e.id) saves,
       (SELECT COUNT(*) FROM leads l WHERE l.event_id=e.id) leads
       FROM events e ${whereE} ORDER BY saves DESC, e.start_local DESC`).all(p);
   const recentLeads = db.prepare(`SELECT l.*, datetime(l.created_at, '${mod}') created_local, e.title event_title FROM leads l JOIN events e ON e.id = l.event_id
       ${eventId ? 'WHERE l.event_id = @eventId' : ''} ORDER BY l.created_at DESC LIMIT 25`).all(p);
-  return { totals, daily, byCalendar, byPlatform, perEvent, recentLeads };
+  return { totals, daily, byCalendar, byPlatform, bySource, byCampaign, leadsBySource, perEvent, recentLeads };
 }
 
 export function leadsForExport(eventId, tzOffsetMin = 0) {

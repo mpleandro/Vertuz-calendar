@@ -160,7 +160,7 @@ ${!closed ? `
   <div><b id="toastTitle">Evento enviado para sua agenda</b><span id="toastSub">Confirme no seu calendário.</span></div>
 </div>
 
-<script>window.__EVENT__ = ${JSON.stringify({ links: gated ? null : links, ctaLabel: ev.cta_label || 'Salvar na minha agenda' }).replace(/</g, '\\u003c')};</script>
+<script>window.__EVENT__ = ${JSON.stringify({ links: gated ? null : links, ctaLabel: ev.cta_label || 'Salvar na minha agenda', preview: !!preview }).replace(/</g, '\\u003c')};</script>
 <script src="/js/event.js" defer></script>
 </body>
 </html>`;
