@@ -64,6 +64,7 @@ CREATE INDEX IF NOT EXISTS idx_clicks_event ON clicks(event_id);
 const cols = db.prepare('PRAGMA table_info(events)').all().map(c => c.name);
 if (!cols.includes('settings_mode')) db.exec(`ALTER TABLE events ADD COLUMN settings_mode TEXT DEFAULT 'default'`);
 if (!cols.includes('template')) db.exec(`ALTER TABLE events ADD COLUMN template TEXT DEFAULT '${DEFAULT_TEMPLATE}'`);
+if (!cols.includes('webhook_url')) db.exec(`ALTER TABLE events ADD COLUMN webhook_url TEXT DEFAULT ''`);
 
 // ---- campos visíveis -------------------------------------------------------
 export const FIELD_DEFS = [
@@ -110,6 +111,15 @@ export function saveDefaults({ template, fields }) {
   putSetting.run('defaults', JSON.stringify({ template: TEMPLATES[template] ? template : DEFAULT_TEMPLATE, fields: normalizeFields(fields) }));
 }
 
+// ---- webhook geral ---------------------------------------------------------
+export function getWebhookSettings() {
+  const raw = parseJson(getSetting.get('webhook')?.value, {});
+  return { url: String(raw.url || ''), secret: String(raw.secret || '') };
+}
+export function saveWebhookSettings({ url, secret }) {
+  putSetting.run('webhook', JSON.stringify({ url: String(url || '').trim(), secret: String(secret || '').trim() }));
+}
+
 /** Evento com template/campos efetivos (padrão global ou personalizados). */
 export function hydrate(row) {
   if (!row) return null;
@@ -136,13 +146,13 @@ export const q = {
   byId: db.prepare('SELECT * FROM events WHERE id = ?'),
   countDefaultMode: db.prepare(`SELECT COUNT(*) AS n FROM events WHERE COALESCE(settings_mode,'default') <> 'custom'`),
   insert: db.prepare(`INSERT INTO events (slug, uid, title, subtitle, description, details, start_local, end_local, timezone,
-    location, url, organizer_name, reminder_minutes, status, hero_image, fields, cta_label, settings_mode, template)
+    location, url, organizer_name, reminder_minutes, status, hero_image, fields, cta_label, settings_mode, template, webhook_url)
     VALUES (@slug, @uid, @title, @subtitle, @description, @details, @start_local, @end_local, @timezone,
-    @location, @url, @organizer_name, @reminder_minutes, @status, @hero_image, @fields, @cta_label, @settings_mode, @template)`),
+    @location, @url, @organizer_name, @reminder_minutes, @status, @hero_image, @fields, @cta_label, @settings_mode, @template, @webhook_url)`),
   update: db.prepare(`UPDATE events SET slug=@slug, title=@title, subtitle=@subtitle, description=@description, details=@details,
     start_local=@start_local, end_local=@end_local, timezone=@timezone, location=@location, url=@url,
     organizer_name=@organizer_name, reminder_minutes=@reminder_minutes, status=@status, hero_image=@hero_image,
-    fields=@fields, cta_label=@cta_label, settings_mode=@settings_mode, template=@template, updated_at=datetime('now') WHERE id=@id`),
+    fields=@fields, cta_label=@cta_label, settings_mode=@settings_mode, template=@template, webhook_url=@webhook_url, updated_at=datetime('now') WHERE id=@id`),
   remove: db.prepare('DELETE FROM events WHERE id = ?'),
   bumpViews: db.prepare('UPDATE events SET views = views + 1 WHERE id = ?'),
   addClick: db.prepare('INSERT INTO clicks (event_id, calendar, platform) VALUES (?, ?, ?)'),

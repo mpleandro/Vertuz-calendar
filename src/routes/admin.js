@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import { q, hydrate, getDefaults, saveDefaults, normalizeFields, dashboardData, leadsForExport, DEFAULT_FIELDS } from '../db.js';
+import { q, hydrate, getDefaults, saveDefaults, getWebhookSettings, saveWebhookSettings, normalizeFields, dashboardData, leadsForExport, DEFAULT_FIELDS } from '../db.js';
 import { config } from '../config.js';
 import { requireAuth, createSession, destroySession, checkPassword, isAuthed } from '../auth.js';
 import { renderLogin, renderHome, renderDashboard, renderSettings, renderForm } from '../views/admin.js';
@@ -12,6 +12,7 @@ import { calendarLinks } from '../calendarLinks.js';
 import { slugify } from '../views/helpers.js';
 import { TEMPLATES, DEFAULT_TEMPLATE } from '../templates.js';
 import { tzOffsetMinutes } from '../time.js';
+import { sendTest } from '../webhooks.js';
 
 export const adminRouter = Router();
 
@@ -31,6 +32,7 @@ const menu = () => q.menuEvents.all();
 const FLASH = {
   saved: 'Evento salvo.', created: 'Evento criado. Ele fica em rascunho até você publicar.', deleted: 'Evento excluído.',
   dup: 'Evento duplicado como rascunho.', settings: 'Configurações gerais salvas.',
+  'wh-bad': 'O webhook precisa começar com http:// ou https://.',
 };
 
 // ---- auth ------------------------------------------------------------------
@@ -92,12 +94,24 @@ function readFields(body) {
   return normalizeFields(f);
 }
 adminRouter.get('/admin/settings', (req, res) => {
-  res.send(renderSettings({ defaults: getDefaults(), usingDefaults: q.countDefaultMode.get().n, flash: FLASH[req.query.m] || '', menuEvents: menu() }));
+  const test = req.query.t;
+  const flash = test ? (test === 'ok' ? `Teste enviado: o destino respondeu ${digits(req.query.s)}.` : '') : (req.query.m === 'wh-bad' ? '' : FLASH[req.query.m] || '');
+  const error = test && test !== 'ok' ? `O teste falhou: ${req.query.s === '0' ? 'sem resposta do destino' : `o destino respondeu ${digits(req.query.s)}`}.` : (req.query.m === 'wh-bad' ? FLASH['wh-bad'] : '');
+  res.send(renderSettings({ defaults: getDefaults(), webhook: getWebhookSettings(), usingDefaults: q.countDefaultMode.get().n, flash, error, menuEvents: menu() }));
 });
-adminRouter.post('/admin/settings', (req, res) => {
+adminRouter.post('/admin/settings', async (req, res) => {
+  const url = String(req.body?.webhook_url || '').trim().slice(0, 500);
+  if (url && !/^https?:\/\//i.test(url)) return res.redirect('/admin/settings?m=wh-bad');
   saveDefaults({ template: req.body?.template, fields: readFields(req.body) });
+  saveWebhookSettings({ url, secret: String(req.body?.webhook_secret || '').slice(0, 200) });
+  if (req.body?.after === 'test') {
+    if (!url) return res.redirect('/admin/settings?m=settings');
+    const r = await sendTest(url, sampleEvent());
+    return res.redirect(`/admin/settings?t=${r.ok ? 'ok' : 'fail'}&s=${r.status}`);
+  }
   res.redirect('/admin?m=settings');
 });
+const digits = s => String(s ?? '').replace(/[^0-9]/g, '');
 
 // ---- prévia de template ----------------------------------------------------
 adminRouter.get('/admin/templates/:id/preview', (req, res) => {
@@ -158,6 +172,7 @@ function readForm(body, existing) {
     // Mesmo em "padrão", guardamos a última personalização para não perdê-la ao alternar.
     template: TEMPLATES[b.template] ? b.template : (existing?.template || DEFAULT_TEMPLATE),
     fields: JSON.stringify(custom ? readFields(b) : normalizeFields(safeJson(existing?.fields))),
+    webhook_url: String(b.webhook_url || '').trim().slice(0, 500),
   };
 }
 function safeJson(s) { try { return JSON.parse(s || '{}'); } catch { return {}; } }
@@ -167,6 +182,7 @@ function validate(d) {
   if (!d.slug) return 'Informe a URL do evento.';
   if (!d.start_local) return 'Informe data e horário de início.';
   if (d.url && !/^https?:\/\//i.test(d.url)) return 'O link do evento precisa começar com http:// ou https://';
+  if (d.webhook_url && !/^https?:\/\//i.test(d.webhook_url)) return 'O webhook precisa começar com http:// ou https://';
   try { new Intl.DateTimeFormat('en-US', { timeZone: d.timezone }); } catch { return 'Fuso horário inválido.'; }
   return '';
 }

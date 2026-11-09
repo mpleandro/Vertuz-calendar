@@ -5,6 +5,8 @@ import { buildIcs } from '../ics.js';
 import { calendarLinks, makeAccessToken, verifyAccessToken } from '../calendarLinks.js';
 import { renderEventPage } from '../views/eventPage.js';
 import { isAuthed } from '../auth.js';
+import { dispatch } from '../webhooks.js';
+import { toZonedIso } from '../time.js';
 
 export const publicRouter = Router();
 const CALS = new Set(['google', 'apple', 'outlook', 'office365', 'yahoo', 'ics']);
@@ -58,12 +60,13 @@ publicRouter.get('/e/:slug/access', (req, res) => {
 });
 
 publicRouter.post('/e/:slug/click', (req, res) => {
-  const ev = q.bySlug.get(req.params.slug);
+  const ev = hydrate(q.bySlug.get(req.params.slug));
   if (!ev) return res.status(404).end();
   const cal = CALS.has(req.body?.calendar) ? req.body.calendar : 'other';
   const plat = PLATS.has(req.body?.platform) ? req.body.platform : 'other';
   q.addClick.run(ev.id, cal, plat);
   res.status(204).end();
+  if (ev.status !== 'draft') dispatch('calendar.clicked', ev, { click: { calendar: cal, platform: plat, created_at: toZonedIso(new Date(), ev.timezone) } });
 });
 
 publicRouter.post('/e/:slug/lead', (req, res) => {
@@ -73,7 +76,10 @@ publicRouter.post('/e/:slug/lead', (req, res) => {
   const name = String(req.body?.name || '').trim().slice(0, 120);
   const cal = CALS.has(req.body?.calendar) ? req.body.calendar : '';
   const plat = PLATS.has(req.body?.platform) ? req.body.platform : '';
-  q.addLead.run(r.ev.id, email, name, cal, plat);
+  const info = q.addLead.run(r.ev.id, email, name, cal, plat);
+  if (!r.preview && r.ev.status !== 'draft') {
+    dispatch('lead.created', r.ev, { lead: { id: Number(info.lastInsertRowid), email, name, calendar: cal, platform: plat, created_at: toZonedIso(new Date(), r.ev.timezone) } });
+  }
   // E-mail obrigatório: só agora o navegador recebe o link do evento e o .ics.
   if (r.ev.fields.requireEmail) return res.json(accessPayload(r.ev, email));
   res.json({ ok: true });

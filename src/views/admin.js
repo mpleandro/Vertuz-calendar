@@ -213,7 +213,9 @@ function fieldChecks(prefix, fields) {
 // ---------------------------------------------------------------------------
 // Configurações gerais
 // ---------------------------------------------------------------------------
-export function renderSettings({ defaults, usingDefaults, flash, menuEvents }) {
+const WEBHOOK_HINT = `Envia um JSON (POST) quando alguém informa o e-mail (<code>lead.created</code>) ou escolhe uma agenda (<code>calendar.clicked</code>). Rascunhos e pré-visualizações não disparam.`;
+
+export function renderSettings({ defaults, webhook = { url: '', secret: '' }, usingDefaults, flash, error, menuEvents }) {
   const body = `
 <div class="page-head"><div><h1>Configurações gerais</h1><p>Valem para todos os eventos em “configurações padrão”. Hoje são <b>${usingDefaults}</b> evento${usingDefaults === 1 ? '' : 's'}. Eventos personalizados não são afetados.</p></div></div>
 <form method="post" action="/admin/settings" class="stack">
@@ -226,9 +228,14 @@ export function renderSettings({ defaults, usingDefaults, flash, menuEvents }) {
     ${fieldChecks('fields_', defaults.fields)}
     <p class="hint hint--box">${ICONS.lock} <span><b>E-mail obrigatório</b> esconde o local, o link do evento e o arquivo .ics até o visitante informar o e-mail. Sem e-mail, ele vê só data, horário e descrição.</span></p>
   </section>
-  <div class="actions actions--sticky"><button class="btn btn--primary" type="submit">${ICONS.check} Salvar configurações</button></div>
+  <section class="card">
+    <div class="card__title">Webhook</div>
+    <div class="form-row"><label class="f"><span>URL do webhook geral</span><input type="url" name="webhook_url" value="${esc(webhook.url)}" placeholder="https://" maxlength="500"><small class="hint">Vale para todos os eventos que não têm webhook próprio. ${WEBHOOK_HINT}</small></label></div>
+    <div class="form-row"><label class="f"><span>Segredo de assinatura</span><input type="text" name="webhook_secret" value="${esc(webhook.secret)}" maxlength="200" autocomplete="off" spellcheck="false" placeholder="Opcional"><small class="hint">Se preenchido, cada envio leva o cabeçalho <code>X-Vertuz-Signature: sha256=…</code> (HMAC-SHA256 do corpo). Vale também para os webhooks dos eventos.</small></label></div>
+  </section>
+  <div class="actions actions--sticky"><button class="btn btn--primary" type="submit">${ICONS.check} Salvar configurações</button><button class="btn btn--soft" type="submit" name="after" value="test">Salvar e enviar teste</button></div>
 </form>`;
-  return layout({ title: 'Configurações gerais', active: 'settings', body, flash, menuEvents });
+  return layout({ title: 'Configurações gerais', active: 'settings', body, flash, error, menuEvents });
 }
 
 // ---------------------------------------------------------------------------
@@ -305,6 +312,11 @@ ${!isNew ? `<div class="linkbox">${ICONS.link}<a href="${esc(baseUrl)}/e/${esc(e
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="card">
+    <div class="card__title">Webhook</div>
+    <div class="form-row"><label class="f"><span>URL do webhook deste evento</span><input type="url" name="webhook_url" value="${v('webhook_url')}" placeholder="https://" maxlength="500"><small class="hint">Em branco, usa o webhook das <a href="/admin/settings">configurações gerais</a>. Preenchido, substitui o geral só para este evento. ${WEBHOOK_HINT}</small></label></div>
   </section>
 
   <section class="card">

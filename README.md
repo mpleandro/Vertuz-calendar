@@ -47,6 +47,41 @@ Com o campo ligado, a página não envia ao navegador o local, o link do evento 
 
 O link do evento pode ser preenchido depois. Enquanto estiver vazio, a página mostra o aviso "Evento em preparação" e marca o link como pendente, e o calendário do visitante registra que o link ainda não foi divulgado. No admin, o evento aparece com o selo "Link pendente".
 
+## Webhooks
+
+Cada ação de visitante gera um `POST` com JSON:
+
+- `lead.created`: alguém informou o e-mail na página do evento.
+- `calendar.clicked`: alguém escolheu uma agenda (Google, Apple, Outlook, Office 365, Yahoo, .ics).
+- `webhook.test`: enviado pelo botão "Salvar e enviar teste" nas configurações gerais.
+
+**Qual URL recebe:** a do evento (campo *Webhook* no formulário do evento). Se estiver vazia, vale a URL geral (*Configurações gerais > Webhook*). Sem nenhuma das duas, nada é enviado. Rascunhos e pré-visualizações não disparam.
+
+**Cabeçalhos:** `X-Vertuz-Event` (tipo), `X-Vertuz-Delivery` (id único, útil para ignorar repetidos) e, se houver segredo configurado, `X-Vertuz-Signature: sha256=<HMAC-SHA256 do corpo>`.
+
+**Entrega:** em segundo plano, com até 3 tentativas (na hora, +5 s, +30 s). Respostas 4xx (exceto 408/429) não são repetidas. Falhas aparecem no log.
+
+```json
+{
+  "id": "whk_8f3c2a1e-6b4d-4f0a-9c2e-1d7b5a9e3f10",
+  "type": "lead.created",
+  "version": 1,
+  "occurred_at": "2026-11-09T10:45:12-03:00",
+  "source": "https://cal.vertuzclub.com.br",
+  "webhook_scope": "event",
+  "event": {
+    "id": 12, "uid": "…@vertuz-agenda", "slug": "imersao", "title": "Imersão", "subtitle": "",
+    "status": "published", "template": "vertuz", "timezone": "America/Sao_Paulo",
+    "start": "2026-11-20T19:00:00-03:00", "end": "2026-11-20T21:00:00-03:00",
+    "location": "Av. Paulista, 1000", "online_url": "https://zoom.us/j/123", "organizer_name": "Vértuz",
+    "page_url": "https://cal.vertuzclub.com.br/e/imersao", "require_email": true
+  },
+  "lead": { "id": 345, "email": "maria@exemplo.com", "name": "Maria", "calendar": "google", "platform": "ios", "created_at": "2026-11-09T10:45:12-03:00" }
+}
+```
+
+Em `calendar.clicked`, o bloco `lead` é trocado por `"click": { "calendar": "apple", "platform": "mac", "created_at": "…" }`.
+
 ## Rotas
 
 | Rota | Descrição |

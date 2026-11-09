@@ -65,3 +65,13 @@ export function tzOffsetMinutes(tz) {
     return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - now.getTime()) / 60000);
   } catch { return 0; }
 }
+
+/** Date -> "2026-11-20T19:00:00-03:00" no fuso informado. */
+export function toZonedIso(date, timeZone) {
+  let off = 0;
+  try { off = Math.round(tzOffsetMs(date, timeZone) / 60000); } catch { off = 0; }
+  const local = new Date(date.getTime() + off * 60000).toISOString().slice(0, 19);
+  const sign = off >= 0 ? '+' : '-';
+  const a = Math.abs(off);
+  return `${local}${sign}${String(Math.floor(a / 60)).padStart(2, '0')}:${String(a % 60).padStart(2, '0')}`;
+}
